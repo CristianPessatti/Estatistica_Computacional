@@ -62,7 +62,13 @@ ajustes <- lapply(dfs, fazer_ajuste)
 medidas <- ajustes[[c(1,3)]]
 for(i in 2:6){ medidas <- rbind(medidas, ajustes[[c(i,3)]]) }
 
+ajustes[[c(1,1)]]
 
+par(mfrow=c(2,3))
+for(i in 1:6) {
+  plot(ajustes[[c(i,1)]])
+  abline(a=ajustes[[c(i,3)]]$beta0, b=ajustes[[c(i,3)]]$beta1)
+}
 # AINDA FALTA:
 # REALIZAR ESTUDO DE SIMULAÇÃO PARA MAIS AMOSTRAS
 # REALIZAR MAIS DE UMA REPETIÇÃO DE CADA DELINEAMENTO
