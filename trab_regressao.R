@@ -1,3 +1,4 @@
+require(tidyverse)
 # ==============================================================================
 # GERAR AMOSTRAS ASSUMINDO ERRO ~ N(0,4)
 gen_amostras <- function(x, beta0 = 1, beta1 = 1) {
@@ -7,7 +8,7 @@ gen_amostras <- function(x, beta0 = 1, beta1 = 1) {
 
 # GERAR DATAFRAMES PARA TODO TIPO DE DELINEAMENTO (24 amostras)
 
-n <- 24
+n <- 8
 dfs <- list()
 
 # Tomar pontos ao acaso entre -10 e 10.
@@ -45,15 +46,18 @@ fazer_ajuste <- function(x) {
   ajuste <- lm(y~., data=x)
   sumario <- summary(ajuste)
 
+  ic_pred <- predict(ajuste, interval='predict')
+
   medidas <- data.frame(beta0             = as.numeric(ajuste$coefficients[1]),
                         beta1             = as.numeric(ajuste$coefficients[2]),
                         erro_padrao_beta0 = as.numeric(sumario$coefficients[,2][1]),
                         erro_padrao_beta1 = as.numeric(sumario$coefficients[,2][2]),
-                        erro_padrao_medio = mean(abs(sumario$residuals)),
-                        erro_padrao_max   = max(abs(sumario$residuals)),
+                        erro_padrao_medio = mean(ic_pred[,3] - ic_pred[,1]),
+                        erro_padrao_max   = max(ic_pred[,3] - ic_pred[,1]),
                         determinante      = det(sumario$coefficients[,1] %*% t(sumario$coefficients[,1])))
   return(list(x, ajuste, medidas))
 }
+
 
 # APLICANDO OS AJUSTES NOS DIFERENTES DELINEAMENTOS DE X
 ajustes <- lapply(dfs, fazer_ajuste)
@@ -73,3 +77,9 @@ for(i in 1:6) {
 # REALIZAR ESTUDO DE SIMULAÇÃO PARA MAIS AMOSTRAS
 # REALIZAR MAIS DE UMA REPETIÇÃO DE CADA DELINEAMENTO
 # FAZER AS DESCRITIVAS E CONCLUSÕES
+dfs[[1]]
+a <- lm(y~., data=dfs[[1]])
+summary(a)
+yh <- predict(a, interval='predict')
+
+par(mfrow = c(1,1))
