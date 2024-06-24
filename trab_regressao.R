@@ -1,4 +1,5 @@
 require(tidyverse)
+require(patchwork)
 # ==============================================================================
 # GERAR AMOSTRAS ASSUMINDO ERRO ~ N(0,4)
 gen_amostras <- function(x, beta0 = 1, beta1 = 1) {
@@ -60,26 +61,32 @@ fazer_ajuste <- function(x) {
 
 
 # APLICANDO OS AJUSTES NOS DIFERENTES DELINEAMENTOS DE X
-ajustes <- lapply(dfs, fazer_ajuste)
+ajustes <- map(dfs, fazer_ajuste)
 
 # APENAS JUNTANDO UM ÚNICO DATAFRAME COM AS MÉTRICAS DE TODOS OS MODELOS
-medidas <- ajustes[[c(1,3)]]
-for(i in 2:6){ medidas <- rbind(medidas, ajustes[[c(i,3)]]) }
+medidas <- ajustes %>%
+  map(3) %>%
+  bind_rows()
 
 ajustes[[c(1,1)]]
 
 par(mfrow=c(2,3))
-for(i in 1:6) {
-  plot(ajustes[[c(i,1)]])
-  abline(a=ajustes[[c(i,3)]]$beta0, b=ajustes[[c(i,3)]]$beta1)
-}
+
+plts <- map(1:6, function(i){
+  ajustes[[c(i,1)]] %>%
+    ggplot(aes(x=x,y=y)) +
+      geom_point() +
+      lims(x = c(-10,10), y=c(-20,20)) +
+      geom_abline(slope = ajustes[[c(i,3)]]$beta1,
+                  intercept = ajustes[[c(i,3)]]$beta0,
+                  colour = 'red', linewidth = 0.6) +
+      geom_abline(slope = 1, intercept = 1,
+                  colour = 'blue', linewidth = 0.6) +
+      theme_bw()
+})
+wrap_plots(plts, nrow = 2)
+
 # AINDA FALTA:
 # REALIZAR ESTUDO DE SIMULAÇÃO PARA MAIS AMOSTRAS
 # REALIZAR MAIS DE UMA REPETIÇÃO DE CADA DELINEAMENTO
 # FAZER AS DESCRITIVAS E CONCLUSÕES
-dfs[[1]]
-a <- lm(y~., data=dfs[[1]])
-summary(a)
-yh <- predict(a, interval='predict')
-
-par(mfrow = c(1,1))
