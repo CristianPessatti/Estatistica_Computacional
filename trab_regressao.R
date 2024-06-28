@@ -9,34 +9,39 @@ gen_amostras <- function(x, beta0 = 1, beta1 = 1) {
 
 # GERAR DATAFRAMES PARA TODO TIPO DE DELINEAMENTO (24 amostras)
 
-n <- 8
-dfs <- list()
+gen_dataframes <- function(n) {
+  dfs <- list()
 
-# Tomar pontos ao acaso entre -10 e 10.
-dfs[[1]] <- data.frame(x = runif(n, -10, 10))
-dfs[[1]]$y <- gen_amostras(dfs[[1]]$x)
+  # Tomar pontos ao acaso entre -10 e 10.
+  dfs[[1]] <- data.frame(x = runif(n, -10, 10))
+  dfs[[1]]$y <- gen_amostras(dfs[[1]]$x)
 
 
-# Tomar pontos igualmente espaçados no intervalo.
-dfs[[2]] <- data.frame(x = seq(from=-10, to=10, length.out=n))
-dfs[[2]]$y <- gen_amostras(dfs[[2]]$x)
+  # Tomar pontos igualmente espaçados no intervalo.
+  dfs[[2]] <- data.frame(x = seq(from=-10, to=10, length.out=n))
+  dfs[[2]]$y <- gen_amostras(dfs[[2]]$x)
 
-# Tomar dois valores em cada ponto escolhido ao acaso.
-dfs[[3]] <- data.frame(x = rep(runif(n/2,-10,10), 2)) %>% arrange(x)
-dfs[[3]]$y <- gen_amostras(dfs[[3]]$x)
+  # Tomar dois valores em cada ponto escolhido ao acaso.
+  dfs[[3]] <- data.frame(x = rep(runif(n/2,-10,10), 2)) %>% arrange(x)
+  dfs[[3]]$y <- gen_amostras(dfs[[3]]$x)
 
-# Tomar dois valores em cada ponto dentre pontos igualmente espaçados.
-dfs[[4]] <- data.frame(x = rep(rep(seq(from=-10,to=10,length.out=n/2),2))) %>% arrange(x)
-dfs[[4]]$y <- gen_amostras(dfs[[4]]$x)
+  # Tomar dois valores em cada ponto dentre pontos igualmente espaçados.
+  dfs[[4]] <- data.frame(x = rep(rep(seq(from=-10,to=10,length.out=n/2),2))) %>% arrange(x)
+  dfs[[4]]$y <- gen_amostras(dfs[[4]]$x)
 
-# Tomar 1/4 de pontos em cada posição.
-dfs[[5]] <- data.frame(x = rep(seq(from=-10,to=10,length.out=4), n*(1/4))) %>% arrange(x)
-dfs[[5]]$y <- gen_amostras(dfs[[5]]$x)
+  # Tomar 1/4 de pontos em cada posição.
+  dfs[[5]] <- data.frame(x = rep(seq(from=-10,to=10,length.out=4), n*(1/4))) %>% arrange(x)
+  dfs[[5]]$y <- gen_amostras(dfs[[5]]$x)
 
-# Tomar metade dos valores em x=−10 e a outra metade em x=10.
-dfs[[6]] <- data.frame(x = c(rep(-10, n/2), rep(10, n/2)))
-dfs[[6]]$y <- gen_amostras(dfs[[6]]$x)
+  # Tomar metade dos valores em x=−10 e a outra metade em x=10.
+  dfs[[6]] <- data.frame(x = c(rep(-10, n/2), rep(10, n/2)))
+  dfs[[6]]$y <- gen_amostras(dfs[[6]]$x)
 # PS: AINDA FALTA FAZER MAIS 2 FORMAS QUE A GENTE DEFINE
+
+  return(dfs)
+}
+
+dfs <- replicate(1000, gen_dataframes(8), simplify = F) %>% flatten()
 
 # ==============================================================================
 # FUNÇÃO QUE FAZ O AJUSTE E RETORNA: A BASE DE DADOS (dfs[[i]]) UTILIZADA,
@@ -63,14 +68,12 @@ fazer_ajuste <- function(x) {
 # APLICANDO OS AJUSTES NOS DIFERENTES DELINEAMENTOS DE X
 ajustes <- map(dfs, fazer_ajuste)
 
-# APENAS JUNTANDO UM ÚNICO DATAFRAME COM AS MÉTRICAS DE TODOS OS MODELOS
-medidas <- ajustes %>%
-  map(3) %>%
-  bind_rows()
-
-ajustes[[c(1,1)]]
-
-par(mfrow=c(2,3))
+metricas_media <- map(1:6, function(i) {
+  idx <- seq(from = i, to = 6000, by = 6)
+  metricas <- map(ajustes, 3)
+  metricas_media <- map(idx, ~ metricas[[.x]]) %>% bind_rows() %>% colMeans()
+  return(metricas_media)
+})
 
 plts <- map(1:6, function(i){
   ajustes[[c(i,1)]] %>%
@@ -79,9 +82,9 @@ plts <- map(1:6, function(i){
       lims(x = c(-10,10), y=c(-20,20)) +
       geom_abline(slope = ajustes[[c(i,3)]]$beta1,
                   intercept = ajustes[[c(i,3)]]$beta0,
-                  colour = 'red', linewidth = 0.6) +
+                  colour = 'tomato', linewidth = 0.6) +
       geom_abline(slope = 1, intercept = 1,
-                  colour = 'blue', linewidth = 0.6) +
+                  colour = 'steelblue', linewidth = 0.6) +
       theme_bw()
 })
 wrap_plots(plts, nrow = 2)
