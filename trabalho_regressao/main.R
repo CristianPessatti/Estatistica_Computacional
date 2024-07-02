@@ -13,7 +13,15 @@ source('trabalho_regressao/metrics.R')
 dados <- gen_data()
 
 # Plotando com um dataframe aleatório de cada delineamento
-plot_all(dados)
+# plot_all(dados)
 
 # Pegando as métricas
-get_coefficients(dados)
+resultado_ajustes <- get_coefficients(dados)
+resultado_ajustes$metrics
+
+# Plotando boxplots dos coeficientes
+resultado_ajustes$coefficients %>%
+  boxplot_beta0(sigmas = 1:3)
+
+resultado_ajustes$coefficients %>%
+  boxplot_beta1(sigmas = 1:3)

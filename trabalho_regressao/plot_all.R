@@ -21,3 +21,36 @@ plot_all <- function(dfs) {
 
   wrap_plots(plts, nrow = 3)
 }
+
+boxplot_beta0 <- function(dados, sigmas) {
+  plts_beta0 <- map(sigmas, function(s) {
+    plt <- dados %>%
+      filter(str_detect(delim, paste0(s,'$'))) %>%
+      ggplot(aes(x = delim, y = beta0)) +
+      geom_boxplot(colour = 'darkblue') +
+      geom_hline(yintercept = 1, colour ='tomato', linewidth = 0.8) +
+      ylim(-0.5, 2.5) +
+      theme_bw() +
+      labs(x = 'Delineamento', y='Beta0')
+    return(plt)
+  })
+  wrap_plots(plts_beta0, nrow=3)
+}
+
+
+boxplot_beta1 <- function(dados, sigmas) {
+  plts_beta1 <- map(sigmas, function(s) {
+    plt <- resultado_ajustes$coefficients %>%
+      filter(str_detect(delim, paste0(s,'$'))) %>%
+      ggplot(aes(x = delim, y = beta1)) +
+      geom_boxplot(colour = 'darkblue') +
+      geom_hline(yintercept = 1, colour ='tomato', linewidth = 0.8) +
+      ylim(0, 2) +
+      theme_bw() +
+      labs(x = 'Delineamento', y='Beta1')
+    return(plt)
+  })
+  wrap_plots(plts_beta1, nrow=3)
+}
+
+
