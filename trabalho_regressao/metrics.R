@@ -25,3 +25,31 @@ get_coefficients <- function(dados) {
     metrics = metrics
   ))
 }
+
+get_coefficients_nl <- function(dados) {
+  nomes <- names(dados)
+
+  coef_estimados <- map(dados, function(item) {
+    map(item, function(df) {
+      ajuste <- nls(y ~ (beta1*x)/(beta2 + x), data = df, start = list(beta1 = 8, beta2 = 4), control = nls.control(maxiter = 1000))
+      return(coef(ajuste))
+    })
+  })
+
+  coef_estimados_df <- map(1:18, function(i){
+    map_df(coef_estimados[[i]], ~ as.data.frame(t(.))) %>% mutate(delim = nomes[i])
+  }) %>% bind_rows()
+
+  names(coef_estimados_df) <- c('beta1', 'beta2', 'delim')
+
+  metrics <- coef_estimados_df %>%
+    group_by(delim) %>%
+    summarise(b1_mean = mean(beta1),
+              b1_sd = sd(beta1),
+              b2_mean = mean(beta2),
+              b2_sd = sd(beta2))
+  return(list(
+    coefficients = coef_estimados_df,
+    metrics = metrics
+  ))
+}
