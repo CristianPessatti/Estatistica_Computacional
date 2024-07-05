@@ -13,7 +13,7 @@ source('trabalho_regressao/modelo_linear/ajustar_modelos.R')
 # Gerando dados
 dados <- gen_data(sigmas = 1:3)
 
-plot_all(dados)
+#plot_all(dados)
 
 # Realizando ajustes
 resultado_ajustes <- ajustar_modelos(dados)

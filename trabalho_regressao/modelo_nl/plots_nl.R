@@ -112,3 +112,35 @@ plot_intervalo_pred <- function(dados, ajustes) {
   return(wrap_plots(plts, nrow = 3))
 }
 
+plot_anova_resultados <- function(resultados) {
+  modelo <- lm(b1_sd ~ delim * sigma, data = resultados)
+
+  # ANOVA para verificar interação
+  anova_result <- Anova(modelo, type = "III")
+
+  plt1 <- ggplot(resultados, aes(x = factor(sigma), y = b1_sd, color = delim, group = delim)) +
+    geom_line() +
+    geom_point() +
+    labs(x = "Sigma", y = "Erro Padrão de Beta1", color = "Delineamento") +
+    theme_minimal() +
+    theme(legend.position = 'left')
+
+  # Modelo de interação
+  modelo2 <- lm(b2_sd ~ delim * sigma, data = resultados)
+
+  # ANOVA para verificar interação
+  anova_result2 <- Anova(modelo2, type = "III")
+
+  plt2 <- ggplot(resultados, aes(x = factor(sigma), y = b2_sd, color = delim, group = delim)) +
+    geom_line() +
+    geom_point() +
+    labs(x = "Sigma", y = "Erro Padrão de Beta2", color = "Delineamento") +
+    theme_minimal() +
+    theme(legend.position = 'none')
+
+  return(list(grafico = wrap_plots(plt1, plt2, ncol = 2),
+              beta0_anova = anova_result,
+              beta1_anova = anova_result2))
+
+}
+

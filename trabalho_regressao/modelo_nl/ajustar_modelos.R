@@ -3,7 +3,7 @@ ajustar_mods_nl <- function(dados) {
 
   ajustes <- map(dados, function(item) {
     map(item, function(df) {
-      ajuste <- nls(y ~ (beta1*x)/(beta2 + x), data = df, start = list(beta1 = 8, beta2 = 4), control = nls.control(maxiter = 1000))
+      ajuste <- nls(y ~ (beta1*x)/(beta2 + x), data = df, start = list(beta1 = 10, beta2 = 2), control = nls.control(maxiter = 5000))
       return(ajuste)
     })
   })
@@ -14,7 +14,7 @@ ajustar_mods_nl <- function(dados) {
     })
   })
 
-  coef_estimados_df <- map(1:18, function(i){
+  coef_estimados_df <- map(1:length(dados), function(i){
     map_df(coef_estimados[[i]], ~ as.data.frame(t(.))) %>% mutate(delim = nomes[i])
   }) %>% bind_rows()
 

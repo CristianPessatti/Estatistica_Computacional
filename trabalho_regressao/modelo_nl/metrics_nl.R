@@ -13,7 +13,7 @@ get_pred_int <- function(dados, mods) {
   new_x_values <- data.frame(x = seq(from = 0, to = 12, by = 0.1))
   nomes <- names(dados)
 
-  values <- map(1:18, function(i) {
+  values <- map(1:length(dados), function(i) {
     map(mods[[i]], function(ajuste) {
       predictions <- predict(ajuste, newdata = new_x_values)
 
