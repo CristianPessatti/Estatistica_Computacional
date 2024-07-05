@@ -17,7 +17,7 @@ get_pred_int_linear <- function(dados, mods) {
   new_x_values <- data.frame(x = seq(from = -10, to = 10, by = 0.2))
   nomes <- names(dados)
 
-  values <- map(1:18, function(i) {
+  values <- map(1:length(dados), function(i) {
     map(mods[[i]], function(ajuste) {
       predictions <- predict(ajuste, newdata = new_x_values, interval = "prediction") %>% as.data.frame()
 

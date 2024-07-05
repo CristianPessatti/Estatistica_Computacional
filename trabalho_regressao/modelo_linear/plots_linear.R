@@ -90,7 +90,6 @@ plot_anova_resultados <- function(resultados) {
 
   # ANOVA para verificar interação
   anova_result <- Anova(modelo, type = "III")
-  print(anova_result)
 
   plt1 <- ggplot(resultados, aes(x = factor(sigma), y = b0_sd, color = delim, group = delim)) +
     geom_line() +
@@ -104,7 +103,6 @@ plot_anova_resultados <- function(resultados) {
 
   # ANOVA para verificar interação
   anova_result2 <- Anova(modelo2, type = "III")
-  print(anova_result2)
 
   plt2 <- ggplot(resultados, aes(x = factor(sigma), y = b1_sd, color = delim, group = delim)) +
     geom_line() +
@@ -113,6 +111,8 @@ plot_anova_resultados <- function(resultados) {
     theme_minimal() +
     theme(legend.position = 'none')
 
-  wrap_plots(plt1, plt2, ncol = 2)
+  return(list(grafico = wrap_plots(plt1, plt2, ncol = 2),
+              beta0_anova = anova_result,
+              beta1_anova = anova_result2))
 
 }

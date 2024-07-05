@@ -14,7 +14,7 @@ ajustar_modelos <- function(dados) {
     })
   })
 
-  coef_estimados_df <- map(1:18, function(i){
+  coef_estimados_df <- map(1:length(dados), function(i){
     map_df(coef_estimados[[i]], ~ as.data.frame(t(.))) %>% mutate(delim = nomes[i])
   }) %>% bind_rows()
 
