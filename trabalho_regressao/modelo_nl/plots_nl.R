@@ -56,48 +56,45 @@ plot_intervalo_pred <- function(dados, ajustes) {
 
   betas = c(10,2)
   random_dfs <- sample(1:100, 18, replace = T)
-  new_x_values <- data.frame(x = seq(from = 0, to = 12, by = 0.5))
+  ndf <- data.frame('x' = seq(0, 12, by = 0.1))
 
   plts <- map(1:18, function(i) {
     df <- dados[[i]][[random_dfs[i]]]
-    ajuste <- ajustes[[i]][[random_dfs[i]]]
+    fit <- ajustes[[i]][[random_dfs[i]]]
 
-    predictions <- predict(ajuste, newdata = data.frame(x = new_x_values))
+    # Prever os valores pontuais
+    ndf$fit <- predict(fit, newdata = ndf)
 
-    # Get model summary
-    model_summary <- summary(ajuste)
+    # Calcular a matriz de covariância dos parâmetros ajustados
+    cov_matrix <- vcov(fit)
 
-    # Extract coefficients and their standard errors
-    coefficients <- coef(ajuste)
-    se_coefficients <- coef(summary(ajuste))[, "Std. Error"]
+    # Função para calcular os erros padrão das previsões
+    predict_se <- function(x, beta1, beta2, cov_matrix) {
+      grad <- c(x / (beta2 + x), -beta1 * x / (beta2 + x)^2)
+      sqrt(t(grad) %*% cov_matrix %*% grad)
+    }
 
-    # Calculate standard error of predictions (assuming a simple model for example)
-    new_data <- data.frame(x = new_x_values)
-    J <- model.matrix(~ x, data = new_data)  # Jacobian matrix
-    sigma <- model_summary$sigma  # Residual standard error
+    # Calcular os intervalos de confiança manualmente
+    alpha <- 0.05
+    t_value <- qt(1 - alpha / 2, df.residual(fit))
 
-    # Variance-covariance matrix of the coefficients
-    vcov_matrix <- vcov(ajuste)
+    # Calcular os erros padrão das previsões
+    ndf$se <- apply(ndf, 1, function(row) predict_se(row['x'], coef(fit)[1], coef(fit)[2], cov_matrix))
 
-    # Standard error of the fitted values
-    se_fit <- sqrt(diag(J %*% vcov_matrix %*% t(J)))
+    # Calcular os intervalos de confiança
+    ndf$lwr_conf <- ndf$fit - t_value * ndf$se
+    ndf$upr_conf <- ndf$fit + t_value * ndf$se
 
-    # Prediction intervals
-    critical_value <- qt(0.975, df = df.residual(ajuste))  # 95% CI
-    lower_bound <- predictions - critical_value * se_fit
-    upper_bound <- predictions + critical_value * se_fit
+    # Calcular os erros residuais padrão
+    residual_se <- sqrt(sum(residuals(fit)^2) / df.residual(fit))
 
-    # Combine the results
-    final <- data.frame(
-      x = new_x_values,
-      fit = predictions,
-      lwr = lower_bound,
-      upr = upper_bound
-    )
+    # Calcular os intervalos de predição
+    ndf$lwr_pred <- ndf$fit - t_value * sqrt(ndf$se^2 + residual_se^2)
+    ndf$upr_pred <- ndf$fit + t_value * sqrt(ndf$se^2 + residual_se^2)
 
-    plt <- ggplot(final, aes(x = x, y = fit)) +
+    plt <- ggplot(ndf, aes(x = x, y = fit)) +
       geom_line(colour = 'tomato', linewidth = 0.8) +
-      geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2, colour = 'steelblue', fill = 'steelblue') +
+      geom_ribbon(aes(ymin = lwr_pred, ymax = upr_pred), alpha = 0.2, colour = 'steelblue', fill = 'steelblue') +
       stat_function(fun = function(x) (betas[1]*x)/(betas[2] + x), colour = 'gold', size = 0.8) +
       geom_point(data = df, aes(x = x, y = y)) +
       theme_minimal() +
